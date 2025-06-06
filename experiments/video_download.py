@@ -73,9 +73,20 @@ import subprocess
 
 def download_video(url, filename, start=None, end=None):
     # Download to a temporary file if segmenting
-    temp_filename = filename
-    if start is not None and end is not None:
+    if start is None and end is None:
         temp_filename = filename.replace(".mp4", "_raw.mp4")
+    else:
+        print(f"Downloading segment from {start} to {end}")
+        temp_filename = filename
+        # Create a filename with start and/or end times
+        base, ext = os.path.splitext(filename)
+        suffix = ""
+        if start is not None:
+            suffix += f"_start{start}"
+        if end is not None:
+            suffix += f"_end{end}"
+        filename = f"{base}{suffix}{ext}"
+        temp_filename = filename
 
     if os.path.exists(filename) and os.path.getsize(filename) > 0:
         print(
