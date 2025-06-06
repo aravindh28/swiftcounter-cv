@@ -59,6 +59,10 @@ def download_video(url, filename, start=None, end=None):
 def precise_trim(input_path, output_path, start, end):
     duration = end - start
     print(f"✂️  Trimming {input_path} from {start}s to {end}s into {output_path}")
+    
+    # Create a temporary file for the trimmed output
+    temp_output = output_path.replace(".mp4", "_temp.mp4")
+    
     cmd = [
         "ffmpeg",
         "-y",
@@ -71,13 +75,21 @@ def precise_trim(input_path, output_path, start, end):
         "-c:v",
         "libx264",
         "-an",  # no audio
-        output_path,
+        temp_output,
     ]
     result = subprocess.run(cmd, capture_output=True)
     if result.returncode == 0:
-        print("✅ Precise trim complete!")
+        # If successful, rename the temporary file to the final output
+        os.replace(temp_output, output_path)
+        print("Precise trim complete!")
+        print(f"Cleaning up temporary file {temp_output}")
+        if os.path.exists(temp_output):
+            os.remove(temp_output)
     else:
         print(f"❌ ffmpeg trimming failed:\n{result.stderr.decode()}")
+        # Clean up temporary file if it exists
+        if os.path.exists(temp_output):
+            os.remove(temp_output)
 
 
 if __name__ == "__main__":
